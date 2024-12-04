@@ -36,7 +36,7 @@ jobs:
         run: go mod tidy
 
       - name: Build
-        run: go build ./...
+        run: go build -o ./bin/fusion ./cmd
 
       - name: Test
         run: go test -v ./...
