@@ -1,0 +1,10 @@
+linters:
+  enable:
+    - govet          # Reports suspicious constructs
+    - staticcheck    # Advanced static analysis
+    - gofmt          # Checks for formatting issues
+    - errcheck       # Checks for unhandled errors
+    - unused         # Detects unused variables/constants
+
+run:
+  timeout: 5m
