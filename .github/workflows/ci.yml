@@ -22,12 +22,20 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Set Go Cache Directory
+        run: |
+          mkdir -p $HOME/go-cache
+          mkdir -p $HOME/go-mod-cache
+        env:
+          GOCACHE: $HOME/go-cache
+          GOMODCACHE: $HOME/go-mod-cache
+
       - name: Cache Go Modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
+            $HOME/go-cache
+            $HOME/go-mod-cache
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
