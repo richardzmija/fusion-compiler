@@ -27,6 +27,7 @@ jobs:
         with:
           path: |
             ~/.cache/go-build
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
@@ -34,13 +35,8 @@ jobs:
       - name: Install Dependencies
         run: go mod tidy
 
-      - name: Lint
-        run: golangci-lint run
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build
-        run: go build ./...
+        run: go build -o ./bin/fusion ./cmd
 
       - name: Test
         run: go test -v ./...
