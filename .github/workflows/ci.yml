@@ -49,7 +49,7 @@ jobs:
         run: go mod tidy
 
       - name: Build
-        run: go build -o ./bin/fusion ./cmd
+        run: go build -o ./bin/fusion ./cmd/compiler
 
       - name: Test
         run: go test -v ./...
