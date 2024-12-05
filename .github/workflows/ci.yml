@@ -24,19 +24,6 @@ jobs:
 
       - name: Install Dependencies
         run: go mod tidy
-        env:
-          GOCACHE: $HOME/go-cache
-          GOMODCACHE: $HOME/go-mod-cache
-
-      - name: Cache Go Modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            $HOME/go-cache
-            $HOME/go-mod-cache
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
 
       - name: Build
         run: go build -o ./bin/fusion ./cmd/compiler
