@@ -30,6 +30,11 @@ jobs:
           GOCACHE: $HOME/go-cache
           GOMODCACHE: $HOME/go-mod-cache
 
+      - name: Clean Go Cache Directories
+        run: |
+          rm -rf $HOME/go-cache
+          rm -rf $HOME/go-mod-cache
+
       - name: Cache Go Modules
         uses: actions/cache@v4
         with:
