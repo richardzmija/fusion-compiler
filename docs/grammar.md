@@ -21,6 +21,13 @@ see the `<printf_statement>` non-terminal and the regular expression for the str
 
 Tokens that are not fixed character sequences are defined using regular expressions according to the C language specification.
 
+## Regular expressions for tokens:
+
+The following are the regular expressions for the tokens which require them in PCRE syntax:
+
+- `id`: [a-zA-Z_][a-zA-Z0-9_]*
+- `num`: 0|[1-9][0-9]*
+- `str`: "(\\n|[^"\\])*"
 ## Grammar:
 
 ### Program structure
