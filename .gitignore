@@ -25,3 +25,6 @@ bin/
 .antlr
 *.tokens
 *.interp
+
+# VS Code
+.vscode/
