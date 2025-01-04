@@ -1,1 +1,1 @@
-*.go linguist-language=Go
+internal/parser/*.go linguist-generated=true
