@@ -1,1 +1,2 @@
 internal/parser/*.go linguist-generated=true
+test/testdata/*.c linguist-ignore
