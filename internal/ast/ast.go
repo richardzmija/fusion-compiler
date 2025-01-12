@@ -24,7 +24,7 @@ type FunctionDefinition struct {
 }
 
 func (funDef *FunctionDefinition) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // Parameter represents a function parameter.
@@ -34,7 +34,7 @@ type Parameter struct {
 }
 
 func (param *Parameter) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // Declaration represents a declaration of a list of variables.
@@ -44,7 +44,7 @@ type Declaration struct {
 }
 
 func (d *Declaration) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // Statement represents a program statement.
@@ -56,11 +56,11 @@ type Statement interface {
 // BlockStatement represents a block statement (compound statement).
 type BlockStatement struct {
 	Declarations []Declaration
-	Statements []Statement
+	Statements   []Statement
 }
 
 func (bs *BlockStatement) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // ExpressionStatement represents an expression that is a statement.
@@ -69,28 +69,28 @@ type ExpressionStatement struct {
 }
 
 func (es *ExpressionStatement) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // IfStatement represents an if statement with an optional else clause.
 type IfStatement struct {
 	Condition Expression
-	Then Statement
-	Else Statement  // nil if the else clause is omitted
+	Then      Statement
+	Else      Statement // nil if the else clause is omitted
 }
 
 func (ifs *IfStatement) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // WhileStatement represents a while loop statement.
 type WhileStatement struct {
 	Condition Expression
-	Body Statement
+	Body      Statement
 }
 
 func (ws *WhileStatement) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // ReturnStatement represents a return jump statement.
@@ -102,18 +102,18 @@ type ReturnStatement struct {
 }
 
 func (rs *ReturnStatement) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // PrintfStatement represents a special, non-standard statement for writing
 // to the standard output.
 type PrintfStatement struct {
-	Format string
+	Format    string
 	Arguments []Expression
 }
 
 func (ps *PrintfStatement) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // Expression represents an expression.
@@ -124,23 +124,23 @@ type Expression interface {
 
 // BinaryExpression represents an expression with two operands in the in-fix notation.
 type BinaryExpression struct {
-	Left Expression
+	Left     Expression
 	Operator string
-	Right Expression
+	Right    Expression
 }
 
 func (be *BinaryExpression) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // UnaryExpression represents an expression with one operand.
 type UnaryExpression struct {
 	Operator string
-	Operand Expression
+	Operand  Expression
 }
 
 func (ue *UnaryExpression) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // Literal represents a constant expression.
@@ -149,7 +149,7 @@ type Literal struct {
 }
 
 func (l *Literal) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // VariableExpression represents a variable that is treated as
@@ -159,17 +159,17 @@ type VariableExpression struct {
 }
 
 func (ve *VariableExpression) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
 
 // CallExpression represents an expression using the function call operator.
 type CallExpression struct {
 	// Callee is considered an expression because the name of the function
 	// being called is treated as a variable holding a pointer to the function.
-	Callee Expression
+	Callee    Expression
 	Arguments []Expression
 }
 
 func (ce *CallExpression) PositionInSource() int {
-	return 0  // Stub
+	return 0 // Stub
 }
