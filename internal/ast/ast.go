@@ -19,7 +19,7 @@ func (prog *Program) PositionInSource() int {
 type FunctionDefinition struct {
 	Name       string
 	ReturnType string
-	Parameters *[]Parameter
+	Parameters []*Parameter
 	Body       *BlockStatement
 }
 
@@ -55,7 +55,7 @@ type Statement interface {
 
 // BlockStatement represents a block statement (compound statement).
 type BlockStatement struct {
-	Declarations []Declaration
+	Declarations []*Declaration
 	Statements   []Statement
 }
 
