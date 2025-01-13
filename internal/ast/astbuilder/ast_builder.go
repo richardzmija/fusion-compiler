@@ -218,3 +218,61 @@ func removeQuotes(s string) string {
 
 	return s
 }
+
+type declaratorExpressionPair struct {
+	name        string
+	initializer ast.Expression
+}
+
+func (b *ASTBuilder) VisitDeclarationList(ctx parser.DeclarationListContext) interface{} {
+	var declarations []*ast.Declaration
+
+	for _, declarationCtx := range ctx.AllDeclaration() {
+		result := declarationCtx.Accept(b)
+		declaration := assertType[*ast.Declaration](result, "DeclarationList", "*Declaration")
+		declarations = append(declarations, declaration)
+	}
+
+	return declarations
+}
+
+func (b *ASTBuilder) VisitDeclaration(ctx parser.DeclarationContext) interface{} {
+	declaration := &ast.Declaration{
+		Type: "int", // For the current C subset all variable declarations use type 'int'.
+	}
+
+	result := ctx.InitDeclaratorList().Accept(b)
+	pairs := assertType[[]declaratorExpressionPair](result, "Declaration", "[]declaratorExpressionPair")
+
+	for _, pair := range pairs {
+		declaration.Names = append(declaration.Names, pair.name)
+		declaration.Initializers = append(declaration.Initializers, pair.initializer)
+	}
+
+	return declaration
+}
+
+func (b *ASTBuilder) VisitInitDeclaratorList(ctx parser.InitDeclaratorListContext) interface{} {
+	var declarators []declaratorExpressionPair
+
+	for _, declaratorCtx := range ctx.AllInitDeclarator() {
+		result := declaratorCtx.Accept(b)
+		pair := assertType[declaratorExpressionPair](result, "InitDeclaratorList", "declaratorExpressionPair")
+		declarators = append(declarators, pair)
+	}
+
+	return declarators
+}
+
+func (b *ASTBuilder) VisitInitDeclarator(ctx parser.InitDeclaratorContext) interface{} {
+	declarator := declaratorExpressionPair{
+		name: ctx.ID().GetText(),
+	}
+
+	if ctx.ASSIGN() != nil {
+		result := ctx.Expression().Accept(b)
+		declarator.initializer = assertType[ast.Expression](result, "InitDeclarator", "Expression")
+	}
+
+	return declarator
+}

@@ -39,8 +39,9 @@ func (param *Parameter) PositionInSource() int {
 
 // Declaration represents a declaration of a list of variables.
 type Declaration struct {
+	Type         string
 	Names        []string
-	Initializers []Expression
+	Initializers []Expression // nil if no initialization expression is provided
 }
 
 func (d *Declaration) PositionInSource() int {
