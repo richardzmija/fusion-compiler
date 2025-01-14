@@ -51,7 +51,7 @@ program
     ;
 
 functionDefinition
-    : INT ID LPAREN parameterList? RPAREN LBRACE declarationList? statementList? RBRACE
+    : INT ID LPAREN parameterList? RPAREN compoundStatement
     ;
 
 parameterList

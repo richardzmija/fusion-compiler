@@ -1,6 +1,7 @@
-// Code generated from C.g4 by ANTLR 4.13.2. DO NOT EDIT.
+// Code generated from ../grammar/C.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser // C
+
 import "github.com/antlr4-go/antlr/v4"
 
 // BaseCListener is a complete listener for a parse tree produced by CParser.
