@@ -1,5 +1,18 @@
 package ast
 
+type DataType int
+
+const (
+	IntType DataType = iota
+)
+
+type LiteralType int
+
+const (
+	IntLiteral LiteralType = iota
+	StringLiteral
+)
+
 // Node represents a node in an Abstract Syntax Tree.
 type Node interface {
 	// PositionInSource returns the position of the node in source code.
@@ -18,7 +31,7 @@ func (prog *Program) PositionInSource() int {
 // FunctionDefinition represents a function definition.
 type FunctionDefinition struct {
 	Name       string
-	ReturnType string
+	ReturnType DataType
 	Parameters []*Parameter
 	Body       *BlockStatement
 }
@@ -30,7 +43,7 @@ func (funDef *FunctionDefinition) PositionInSource() int {
 // Parameter represents a function parameter.
 type Parameter struct {
 	Name     string
-	DataType string
+	BaseType DataType
 }
 
 func (param *Parameter) PositionInSource() int {
@@ -39,7 +52,7 @@ func (param *Parameter) PositionInSource() int {
 
 // Declaration represents a declaration of a list of variables.
 type Declaration struct {
-	Type         string
+	Type         DataType
 	Names        []string
 	Initializers []Expression // nil if no initialization expression is provided
 }
@@ -146,7 +159,8 @@ func (ue *UnaryExpression) PositionInSource() int {
 
 // Literal represents a constant expression.
 type Literal struct {
-	Value interface{}
+	Value string
+	Type  LiteralType
 }
 
 func (l *Literal) PositionInSource() int {
