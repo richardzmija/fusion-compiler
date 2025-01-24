@@ -116,7 +116,7 @@ printfStatement
     ;
 
 expression
-    : assignmentExpression (COMMA assignmentExpression)*
+    : assignmentExpression
     ;
 
 assignmentExpression

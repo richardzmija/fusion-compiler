@@ -28,3 +28,9 @@ bin/
 
 # VS Code
 .vscode/
+
+# dlv debug
+__debug*
+
+# MacOS-specific
+.DS_Store

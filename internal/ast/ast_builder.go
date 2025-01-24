@@ -1,10 +1,9 @@
-package astbuilder
+package ast
 
 import (
 	"log"
 
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/richardzmija/fusion-compiler/internal/ast"
 	"github.com/richardzmija/fusion-compiler/internal/parser"
 )
 
@@ -36,88 +35,90 @@ type ASTBuilder struct {
 
 func NewASTBuilder() *ASTBuilder {
 	return &ASTBuilder{
-		BaseCVisitor: &parser.BaseCVisitor{},
+		BaseCVisitor: &parser.BaseCVisitor{
+			BaseParseTreeVisitor: &antlr.BaseParseTreeVisitor{},
+		},
 	}
 }
 
-func (b *ASTBuilder) VisitProgram(ctx parser.ProgramContext) interface{} {
-	program := &ast.Program{}
+func (b *ASTBuilder) VisitProgram(ctx *parser.ProgramContext) interface{} {
+	program := &Program{}
 
 	for _, functionDefinitionCtx := range ctx.AllFunctionDefinition() {
 		result := functionDefinitionCtx.Accept(b)
-		function := assertType[*ast.FunctionDefinition](result, "Program", "*astFunctionDefinition")
+		function := assertType[*FunctionDefinition](result, "Program", "*astFunctionDefinition")
 		program.Functions = append(program.Functions, function)
 	}
 
 	return program
 }
 
-func (b *ASTBuilder) VisitFunctionDefinition(ctx parser.FunctionDefinitionContext) interface{} {
-	function := &ast.FunctionDefinition{
+func (b *ASTBuilder) VisitFunctionDefinition(ctx *parser.FunctionDefinitionContext) interface{} {
+	function := &FunctionDefinition{
 		Name:       ctx.ID().GetText(),
-		ReturnType: ast.IntType, // For the current C subset all functions have return type 'int'.
+		ReturnType: IntType, // For the current C subset all functions have return type 'int'.
 	}
 
 	if parameterListCtx := ctx.ParameterList(); parameterListCtx != nil {
 		result := parameterListCtx.Accept(b)
-		function.Parameters = assertType[[]*ast.Parameter](result, "FunctionDefinition", "[]*Parameter")
+		function.Parameters = assertType[[]*Parameter](result, "FunctionDefinition", "[]*Parameter")
 	}
 
 	compoundStatementCtx := ctx.CompoundStatement()
 	result := compoundStatementCtx.Accept(b)
-	function.Body = assertType[*ast.BlockStatement](result, "FunctionDefinition", "*BlockStatement")
+	function.Body = assertType[*BlockStatement](result, "FunctionDefinition", "*BlockStatement")
 
 	return function
 }
 
-func (b *ASTBuilder) VisitParameterList(ctx parser.ParameterListContext) interface{} {
-	var parameters []*ast.Parameter
+func (b *ASTBuilder) VisitParameterList(ctx *parser.ParameterListContext) interface{} {
+	var parameters []*Parameter
 
 	for _, parameterDeclCtx := range ctx.AllParameterDeclaration() {
 		result := parameterDeclCtx.Accept(b)
-		parameter := assertType[*ast.Parameter](result, "ParameterList", "*Parameter")
+		parameter := assertType[*Parameter](result, "ParameterList", "*Parameter")
 		parameters = append(parameters, parameter)
 	}
 
 	return parameters
 }
 
-func (b *ASTBuilder) VisitParameterDeclaration(ctx parser.ParameterDeclarationContext) interface{} {
-	return &ast.Parameter{
+func (b *ASTBuilder) VisitParameterDeclaration(ctx *parser.ParameterDeclarationContext) interface{} {
+	return &Parameter{
 		Name:     ctx.ID().GetText(),
-		BaseType: ast.IntType, // For the current C subset all parameters have type 'int'.
+		BaseType: IntType, // For the current C subset all parameters have type 'int'.
 	}
 }
 
-func (b *ASTBuilder) VisitCompoundStatement(ctx parser.CompoundStatementContext) interface{} {
-	blockStatement := &ast.BlockStatement{}
+func (b *ASTBuilder) VisitCompoundStatement(ctx *parser.CompoundStatementContext) interface{} {
+	blockStatement := &BlockStatement{}
 
 	if declarationListCtx := ctx.DeclarationList(); declarationListCtx != nil {
 		result := declarationListCtx.Accept(b)
-		blockStatement.Declarations = assertType[[]*ast.Declaration](result, "CompoundStatement", "[]*Declaration")
+		blockStatement.Declarations = assertType[[]*Declaration](result, "CompoundStatement", "[]*Declaration")
 	}
 
 	if statementListCtx := ctx.StatementList(); statementListCtx != nil {
 		result := statementListCtx.Accept(b)
-		blockStatement.Statements = assertType[[]ast.Statement](result, "CompoundStatement", "[]Statement")
+		blockStatement.Statements = assertType[[]Statement](result, "CompoundStatement", "[]Statement")
 	}
 
 	return blockStatement
 }
 
-func (b *ASTBuilder) VisitStatementList(ctx parser.StatementListContext) interface{} {
-	var statements []ast.Statement
+func (b *ASTBuilder) VisitStatementList(ctx *parser.StatementListContext) interface{} {
+	var statements []Statement
 
 	for _, statementCtx := range ctx.AllStatement() {
 		result := statementCtx.Accept(b)
-		statement := assertType[ast.Statement](result, "StatementList", "Statement")
+		statement := assertType[Statement](result, "StatementList", "Statement")
 		statements = append(statements, statement)
 	}
 
 	return statements
 }
 
-func (b *ASTBuilder) VisitStatement(ctx parser.StatementContext) interface{} {
+func (b *ASTBuilder) VisitStatement(ctx *parser.StatementContext) interface{} {
 	const expectedType = "*BlockStatement|*ExpressionStatement|*IfStatement|" +
 		"*WhileStatement|*ReturnStatement|*PrintfStatement"
 
@@ -140,74 +141,74 @@ func (b *ASTBuilder) VisitStatement(ctx parser.StatementContext) interface{} {
 		log.Fatalf("Error processing Statement node of the parse tree: Missing valid child node context.")
 	}
 
-	return assertType[ast.Statement](result, "Statement", expectedType)
+	return assertType[Statement](result, "Statement", expectedType)
 }
 
-func (b *ASTBuilder) VisitExpressionStatement(ctx parser.ExpressionStatementContext) interface{} {
-	expressionStatement := &ast.ExpressionStatement{}
+func (b *ASTBuilder) VisitExpressionStatement(ctx *parser.ExpressionStatementContext) interface{} {
+	expressionStatement := &ExpressionStatement{}
 
 	if expressionCtx := ctx.Expression(); expressionCtx != nil {
 		result := expressionCtx.Accept(b)
-		expressionStatement.ContainedExpression = assertType[ast.Expression](result, "ExpressionStatement", "Expression")
+		expressionStatement.ContainedExpression = assertType[Expression](result, "ExpressionStatement", "Expression")
 	}
 
 	return expressionStatement
 }
 
-func (b *ASTBuilder) VisitSelectionStatement(ctx parser.SelectionStatementContext) interface{} {
+func (b *ASTBuilder) VisitSelectionStatement(ctx *parser.SelectionStatementContext) interface{} {
 	conditionResult := ctx.Expression().Accept(b)
-	condition := assertType[ast.Expression](conditionResult, "SelectionStatement", "Expression")
+	condition := assertType[Expression](conditionResult, "SelectionStatement", "Expression")
 
 	thenStatementResult := ctx.Statement(0).Accept(b)
-	thenStatement := assertType[ast.Statement](thenStatementResult, "SelectionStatement", "Statement")
+	thenStatement := assertType[Statement](thenStatementResult, "SelectionStatement", "Statement")
 
-	var elseStatement ast.Statement
+	var elseStatement Statement
 	if ctx.ELSE() != nil {
 		elseStatementResult := ctx.Statement(1).Accept(b)
-		elseStatement = assertType[ast.Statement](elseStatementResult, "SelectionStatement", "Statement")
+		elseStatement = assertType[Statement](elseStatementResult, "SelectionStatement", "Statement")
 	}
 
-	return &ast.IfStatement{
+	return &IfStatement{
 		Condition: condition,
 		Then:      thenStatement,
 		Else:      elseStatement,
 	}
 }
 
-func (b *ASTBuilder) VisitIterationStatement(ctx parser.IterationStatementContext) interface{} {
+func (b *ASTBuilder) VisitIterationStatement(ctx *parser.IterationStatementContext) interface{} {
 	conditionResult := ctx.Expression().Accept(b)
-	condition := assertType[ast.Expression](conditionResult, "IterationStatement", "Expression")
+	condition := assertType[Expression](conditionResult, "IterationStatement", "Expression")
 
 	bodyResult := ctx.Statement().Accept(b)
-	body := assertType[ast.Statement](bodyResult, "IterationStatement", "Statement")
+	body := assertType[Statement](bodyResult, "IterationStatement", "Statement")
 
-	return &ast.WhileStatement{
+	return &WhileStatement{
 		Condition: condition,
 		Body:      body,
 	}
 }
 
-func (b *ASTBuilder) VisitJumpStatement(ctx parser.JumpStatementContext) interface{} {
-	var returnValue ast.Expression
+func (b *ASTBuilder) VisitJumpStatement(ctx *parser.JumpStatementContext) interface{} {
+	var returnValue Expression
 
 	if expressionCtx := ctx.Expression(); expressionCtx != nil {
 		returnValueResult := expressionCtx.Accept(b)
-		returnValue = assertType[ast.Expression](returnValueResult, "JumpStatement", "Expression")
+		returnValue = assertType[Expression](returnValueResult, "JumpStatement", "Expression")
 	}
 
-	return &ast.ReturnStatement{
+	return &ReturnStatement{
 		ReturnValue: returnValue,
 	}
 }
 
-func (b *ASTBuilder) VisitPrintfStatement(ctx parser.PrintfStatementContext) interface{} {
-	printfStatement := &ast.PrintfStatement{
+func (b *ASTBuilder) VisitPrintfStatement(ctx *parser.PrintfStatementContext) interface{} {
+	printfStatement := &PrintfStatement{
 		Format: removeQuotes(ctx.STR().GetText()),
 	}
 
 	for _, expressionCtx := range ctx.AllExpression() {
 		result := expressionCtx.Accept(b)
-		argument := assertType[ast.Expression](result, "PrintfStatement", "Expression")
+		argument := assertType[Expression](result, "PrintfStatement", "Expression")
 		printfStatement.Arguments = append(printfStatement.Arguments, argument)
 	}
 
@@ -226,24 +227,24 @@ func removeQuotes(s string) string {
 
 type declaratorExpressionPair struct {
 	name        string
-	initializer ast.Expression
+	initializer Expression
 }
 
-func (b *ASTBuilder) VisitDeclarationList(ctx parser.DeclarationListContext) interface{} {
-	var declarations []*ast.Declaration
+func (b *ASTBuilder) VisitDeclarationList(ctx *parser.DeclarationListContext) interface{} {
+	var declarations []*Declaration
 
 	for _, declarationCtx := range ctx.AllDeclaration() {
 		result := declarationCtx.Accept(b)
-		declaration := assertType[*ast.Declaration](result, "DeclarationList", "*Declaration")
+		declaration := assertType[*Declaration](result, "DeclarationList", "*Declaration")
 		declarations = append(declarations, declaration)
 	}
 
 	return declarations
 }
 
-func (b *ASTBuilder) VisitDeclaration(ctx parser.DeclarationContext) interface{} {
-	declaration := &ast.Declaration{
-		Type: ast.IntType, // For the current C subset all variable declarations use type 'int'.
+func (b *ASTBuilder) VisitDeclaration(ctx *parser.DeclarationContext) interface{} {
+	declaration := &Declaration{
+		Type: IntType, // For the current C subset all variable declarations use type 'int'.
 	}
 
 	result := ctx.InitDeclaratorList().Accept(b)
@@ -257,7 +258,7 @@ func (b *ASTBuilder) VisitDeclaration(ctx parser.DeclarationContext) interface{}
 	return declaration
 }
 
-func (b *ASTBuilder) VisitInitDeclaratorList(ctx parser.InitDeclaratorListContext) interface{} {
+func (b *ASTBuilder) VisitInitDeclaratorList(ctx *parser.InitDeclaratorListContext) interface{} {
 	var declarators []declaratorExpressionPair
 
 	for _, declaratorCtx := range ctx.AllInitDeclarator() {
@@ -269,27 +270,27 @@ func (b *ASTBuilder) VisitInitDeclaratorList(ctx parser.InitDeclaratorListContex
 	return declarators
 }
 
-func (b *ASTBuilder) VisitInitDeclarator(ctx parser.InitDeclaratorContext) interface{} {
+func (b *ASTBuilder) VisitInitDeclarator(ctx *parser.InitDeclaratorContext) interface{} {
 	declarator := declaratorExpressionPair{
 		name: ctx.ID().GetText(),
 	}
 
 	if ctx.ASSIGN() != nil {
 		result := ctx.Expression().Accept(b)
-		declarator.initializer = assertType[ast.Expression](result, "InitDeclarator", "Expression")
+		declarator.initializer = assertType[Expression](result, "InitDeclarator", "Expression")
 	}
 
 	return declarator
 }
 
-func (b *ASTBuilder) VisitConstant(ctx parser.ConstantContext) interface{} {
-	literal := &ast.Literal{}
+func (b *ASTBuilder) VisitConstant(ctx *parser.ConstantContext) interface{} {
+	literal := &Literal{}
 
 	if numCtx := ctx.NUM(); numCtx != nil {
-		literal.Type = ast.IntLiteral
+		literal.Type = IntLiteral
 		literal.Value = numCtx.GetText()
 	} else if strCtx := ctx.STR(); strCtx != nil {
-		literal.Type = ast.StringLiteral
+		literal.Type = StringLiteral
 		literal.Value = removeQuotes(strCtx.GetText())
 	} else {
 		log.Fatalf(unknownExpressionMessageTemplate, "Constant")
@@ -298,44 +299,44 @@ func (b *ASTBuilder) VisitConstant(ctx parser.ConstantContext) interface{} {
 	return literal
 }
 
-func (b *ASTBuilder) VisitPrimaryExpression(ctx parser.PrimaryExpressionContext) interface{} {
+func (b *ASTBuilder) VisitPrimaryExpression(ctx *parser.PrimaryExpressionContext) interface{} {
 	if constantCtx := ctx.Constant(); constantCtx != nil {
 		result := constantCtx.Accept(b)
-		return assertType[ast.Expression](result, "PrimaryExpression", "*Literal")
+		return assertType[Expression](result, "PrimaryExpression", "*Literal")
 	}
 
 	if idCtx := ctx.ID(); idCtx != nil {
-		return &ast.VariableExpression{
+		return &VariableExpression{
 			Name: idCtx.GetText(),
 		}
 	}
 
 	if exprCtx := ctx.Expression(); exprCtx != nil {
 		result := exprCtx.Accept(b)
-		return assertType[ast.Expression](result, "PrimaryExpression", "Expression")
+		return assertType[Expression](result, "PrimaryExpression", "Expression")
 	}
 
 	log.Fatalf(unknownExpressionMessageTemplate, "PrimaryExpression")
 	return nil
 }
 
-func (b *ASTBuilder) VisitPostfixExpression(ctx parser.PostfixExpressionContext) interface{} {
+func (b *ASTBuilder) VisitPostfixExpression(ctx *parser.PostfixExpressionContext) interface{} {
 	if primaryExprCtx := ctx.PrimaryExpression(); primaryExprCtx != nil {
 		result := primaryExprCtx.Accept(b)
-		return assertType[ast.Expression](result, "PostfixExpression", "Expression")
+		return assertType[Expression](result, "PostfixExpression", "Expression")
 	}
 
 	if postfixExprCtx := ctx.PostfixExpression(); postfixExprCtx != nil {
 		resultPostfix := postfixExprCtx.Accept(b)
-		postfix := assertType[ast.Expression](resultPostfix, "PostfixExpression", "Expression")
+		postfix := assertType[Expression](resultPostfix, "PostfixExpression", "Expression")
 
-		var argumentExpressions []ast.Expression
+		var argumentExpressions []Expression
 		if argumentExprListCtx := ctx.ArgumentExpressionList(); argumentExprListCtx != nil {
 			resultArgumentExpr := argumentExprListCtx.Accept(b)
-			argumentExpressions = assertType[[]ast.Expression](resultArgumentExpr, "PostfixExpression", "[]Expression")
+			argumentExpressions = assertType[[]Expression](resultArgumentExpr, "PostfixExpression", "[]Expression")
 		}
 
-		return &ast.CallExpression{
+		return &CallExpression{
 			Callee:    postfix,
 			Arguments: argumentExpressions,
 		}
@@ -345,28 +346,28 @@ func (b *ASTBuilder) VisitPostfixExpression(ctx parser.PostfixExpressionContext)
 	return nil
 }
 
-func (b *ASTBuilder) VisitArgumentExpressionList(ctx parser.ArgumentExpressionListContext) interface{} {
-	var argumentExpressions []ast.Expression
+func (b *ASTBuilder) VisitArgumentExpressionList(ctx *parser.ArgumentExpressionListContext) interface{} {
+	var argumentExpressions []Expression
 
 	for _, exprCtx := range ctx.AllAssignmentExpression() {
 		result := exprCtx.Accept(b)
-		argumentExpression := assertType[ast.Expression](result, "ArgumentExpressionList", "Expression")
+		argumentExpression := assertType[Expression](result, "ArgumentExpressionList", "Expression")
 		argumentExpressions = append(argumentExpressions, argumentExpression)
 	}
 
 	return argumentExpressions
 }
 
-func (b *ASTBuilder) VisitUnaryExpression(ctx parser.UnaryExpressionContext) interface{} {
+func (b *ASTBuilder) VisitUnaryExpression(ctx *parser.UnaryExpressionContext) interface{} {
 	if postfixExprCtx := ctx.PostfixExpression(); postfixExprCtx != nil {
 		result := postfixExprCtx.Accept(b)
-		return assertType[ast.Expression](result, "UnaryExpression", "Expression")
+		return assertType[Expression](result, "UnaryExpression", "Expression")
 	}
 
 	if ctx.PLUS() != nil {
 		result := ctx.UnaryExpression().Accept(b)
-		operand := assertType[ast.Expression](result, "UnaryExpression", "Expression")
-		return &ast.UnaryExpression{
+		operand := assertType[Expression](result, "UnaryExpression", "Expression")
+		return &UnaryExpression{
 			Operator: "+",
 			Operand:  operand,
 		}
@@ -374,8 +375,8 @@ func (b *ASTBuilder) VisitUnaryExpression(ctx parser.UnaryExpressionContext) int
 
 	if ctx.MINUS() != nil {
 		result := ctx.UnaryExpression().Accept(b)
-		operand := assertType[ast.Expression](result, "UnaryExpression", "Expression")
-		return &ast.UnaryExpression{
+		operand := assertType[Expression](result, "UnaryExpression", "Expression")
+		return &UnaryExpression{
 			Operator: "-",
 			Operand:  operand,
 		}
@@ -386,14 +387,14 @@ func (b *ASTBuilder) VisitUnaryExpression(ctx parser.UnaryExpressionContext) int
 }
 
 func leftAssociativeReduction[T antlr.ParseTree](operands []T, ctx antlr.BaseParserRuleContext,
-	nodeName string, visitor *ASTBuilder) ast.Expression {
+	nodeName string, visitor *ASTBuilder) Expression {
 
 	if len(operands) == 1 {
-		return assertType[ast.Expression](operands[0].Accept(visitor), nodeName, "Expression")
+		return assertType[Expression](operands[0].Accept(visitor), nodeName, "Expression")
 	}
 
 	// Begin with the leftmost operand and use it to construct the first BinaryExpression instance.
-	left := assertType[ast.Expression](operands[0].Accept(visitor), nodeName, "Expression")
+	left := assertType[Expression](operands[0].Accept(visitor), nodeName, "Expression")
 
 	for opIndex := 1; opIndex < ctx.GetChildCount(); opIndex += 2 {
 		token, ok := ctx.GetChild(opIndex).(antlr.TerminalNode)
@@ -411,10 +412,10 @@ func leftAssociativeReduction[T antlr.ParseTree](operands []T, ctx antlr.BasePar
 				"Index out of bounds!", nodeName)
 		}
 
-		right := assertType[ast.Expression](operands[rightOperandIndex].Accept(visitor),
+		right := assertType[Expression](operands[rightOperandIndex].Accept(visitor),
 			nodeName, "Expression")
 
-		left = &ast.BinaryExpression{
+		left = &BinaryExpression{
 			Left:     left,
 			Operator: operator,
 			Right:    right,
@@ -424,60 +425,60 @@ func leftAssociativeReduction[T antlr.ParseTree](operands []T, ctx antlr.BasePar
 	return left
 }
 
-func (b *ASTBuilder) VisitMultiplicativeExpression(ctx parser.MultiplicativeExpressionContext) interface{} {
+func (b *ASTBuilder) VisitMultiplicativeExpression(ctx *parser.MultiplicativeExpressionContext) interface{} {
 	unaryExpressions := ctx.AllUnaryExpression()
 	return leftAssociativeReduction(unaryExpressions, ctx.BaseParserRuleContext, "MultiplicativeExpression", b)
 }
 
-func (b *ASTBuilder) VisitAdditiveExpression(ctx parser.AdditiveExpressionContext) interface{} {
+func (b *ASTBuilder) VisitAdditiveExpression(ctx *parser.AdditiveExpressionContext) interface{} {
 	multiplicativeExpressions := ctx.AllMultiplicativeExpression()
 	return leftAssociativeReduction(multiplicativeExpressions, ctx.BaseParserRuleContext, "AdditiveExpression", b)
 }
 
-func (b *ASTBuilder) VisitRelationalExpression(ctx parser.RelationalExpressionContext) interface{} {
+func (b *ASTBuilder) VisitRelationalExpression(ctx *parser.RelationalExpressionContext) interface{} {
 	additiveExpressions := ctx.AllAdditiveExpression()
 	return leftAssociativeReduction(additiveExpressions, ctx.BaseParserRuleContext, "RelationalExpression", b)
 }
 
-func (b *ASTBuilder) VisitEqualityExpression(ctx parser.EqualityExpressionContext) interface{} {
+func (b *ASTBuilder) VisitEqualityExpression(ctx *parser.EqualityExpressionContext) interface{} {
 	relationalExpressions := ctx.AllRelationalExpression()
 	return leftAssociativeReduction(relationalExpressions, ctx.BaseParserRuleContext, "EqualityExpression", b)
 }
 
-func (b *ASTBuilder) VisitLogicalAndExpression(ctx parser.LogicalAndExpressionContext) interface{} {
+func (b *ASTBuilder) VisitLogicalAndExpression(ctx *parser.LogicalAndExpressionContext) interface{} {
 	equalityExpressions := ctx.AllEqualityExpression()
 	return leftAssociativeReduction(equalityExpressions, ctx.BaseParserRuleContext, "LogicalAndExpression", b)
 }
 
-func (b *ASTBuilder) VisitLogicalOrExpression(ctx parser.LogicalOrExpressionContext) interface{} {
+func (b *ASTBuilder) VisitLogicalOrExpression(ctx *parser.LogicalOrExpressionContext) interface{} {
 	logicalAndExpressions := ctx.AllLogicalAndExpression()
 	return leftAssociativeReduction(logicalAndExpressions, ctx.BaseParserRuleContext, "LogicalOrExpression", b)
 }
 
-func (b *ASTBuilder) VisitConditionalExpression(ctx parser.ConditionalExpressionContext) interface{} {
+func (b *ASTBuilder) VisitConditionalExpression(ctx *parser.ConditionalExpressionContext) interface{} {
 	if logicalOrExpressionCtx := ctx.LogicalOrExpression(); logicalOrExpressionCtx != nil {
 		result := logicalOrExpressionCtx.Accept(b)
-		return assertType[ast.Expression](result, "ConditionalExpression", "Expression")
+		return assertType[Expression](result, "ConditionalExpression", "Expression")
 	}
 
 	log.Fatalf(unknownExpressionMessageTemplate, "ConditionalExpression")
 	return nil
 }
 
-func (b *ASTBuilder) VisitAssignmentExpression(ctx parser.AssignmentExpressionContext) interface{} {
+func (b *ASTBuilder) VisitAssignmentExpression(ctx *parser.AssignmentExpressionContext) interface{} {
 	if conditionalExprCtx := ctx.ConditionalExpression(); conditionalExprCtx != nil {
 		result := conditionalExprCtx.Accept(b)
-		return assertType[ast.Expression](result, "AssignmentExpression", "Expression")
+		return assertType[Expression](result, "AssignmentExpression", "Expression")
 	}
 
 	if unaryExprCtx := ctx.UnaryExpression(); unaryExprCtx != nil {
 		leftResult := unaryExprCtx.Accept(b)
-		left := assertType[ast.Expression](leftResult, "AssignmentExpression", "Expression")
+		left := assertType[Expression](leftResult, "AssignmentExpression", "Expression")
 
 		rightResult := ctx.AssignmentExpression().Accept(b)
-		right := assertType[ast.Expression](rightResult, "AssignmentExpression", "Expression")
+		right := assertType[Expression](rightResult, "AssignmentExpression", "Expression")
 
-		return &ast.BinaryExpression{
+		return &BinaryExpression{
 			Left:     left,
 			Operator: ctx.ASSIGN().GetText(),
 			Right:    right,
@@ -488,7 +489,11 @@ func (b *ASTBuilder) VisitAssignmentExpression(ctx parser.AssignmentExpressionCo
 	return nil
 }
 
-func (b *ASTBuilder) VisitExpression(ctx parser.ExpressionContext) interface{} {
-	assignmentExpressions := ctx.AllAssignmentExpression()
-	return leftAssociativeReduction(assignmentExpressions, ctx.BaseParserRuleContext, "Expression", b)
+func (b *ASTBuilder) VisitExpression(ctx *parser.ExpressionContext) interface{} {
+	if assignmentExprCtx := ctx.AssignmentExpression(); assignmentExprCtx != nil {
+		return assertType[Expression](assignmentExprCtx.Accept(b), "Expression", "Expression")
+	}
+
+	log.Fatalf(unknownExpressionMessageTemplate, "Expression")
+	return nil
 }

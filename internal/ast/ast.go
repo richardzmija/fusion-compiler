@@ -4,6 +4,7 @@ type DataType int
 
 const (
 	IntType DataType = iota
+	FunctionType // Represents a function type (i.e., function name in variable expression context has this type)
 )
 
 type LiteralType int
