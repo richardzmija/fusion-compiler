@@ -11,6 +11,9 @@ to be implemented in order to express output operations. Even though inclusion o
 keyword deviates from the C language specification the syntax remains very similar. For details
 see the `<printf_statement>` non-terminal and the regular expression for the string literal token.
 
+Since the declarations are not supported by this subset for simplicity the order of function definitions
+in a source file doesn't matter. This means that if a function is called before being defined the compiler
+will not raise semantic errors.
 ## Tokens:
 
 - Keywords: `int`, `if`, `else`, `while`, `return`, `printf`
