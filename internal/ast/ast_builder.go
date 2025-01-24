@@ -490,6 +490,10 @@ func (b *ASTBuilder) VisitAssignmentExpression(ctx *parser.AssignmentExpressionC
 }
 
 func (b *ASTBuilder) VisitExpression(ctx *parser.ExpressionContext) interface{} {
-	assignmentExpressions := ctx.AllAssignmentExpression()
-	return leftAssociativeReduction(assignmentExpressions, ctx.BaseParserRuleContext, "Expression", b)
+	if assignmentExprCtx := ctx.AssignmentExpression(); assignmentExprCtx != nil {
+		return assertType[Expression](assignmentExprCtx.Accept(b), "Expression", "Expression")
+	}
+
+	log.Fatalf(unknownExpressionMessageTemplate, "Expression")
+	return nil
 }

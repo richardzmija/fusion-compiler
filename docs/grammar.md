@@ -89,7 +89,6 @@ The following are the regular expressions for the tokens which require them in P
 
 ```
 <expression> ::= <assignment_expression>
-              | <expression> ',' <assignment_expression>
 
 <assignment_expression> ::= <conditional_expression>
                           | <unary_expression> '=' <assignment_expression>
