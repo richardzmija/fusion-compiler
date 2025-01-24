@@ -113,6 +113,7 @@ func (a *Analyzer) analyzeBlockStatement(bs *ast.BlockStatement) {
 
 // analyzeDeclaration defines each declared variable in the current scope and checks its initializer (if any).
 func (a *Analyzer) analyzeDeclaration(decl *ast.Declaration) {
+	// Define variable
     for i, name := range decl.Names {
         sym := &Symbol{
             Name:     name,
@@ -123,7 +124,7 @@ func (a *Analyzer) analyzeDeclaration(decl *ast.Declaration) {
             a.addError(decl.PositionInSource(), err.Error())
         }
 
-        // Check initializer if present
+		// Check the initializer if present
         initExpr := decl.Initializers[i]
         if initExpr != nil {
             exprType := a.checkExpression(initExpr)

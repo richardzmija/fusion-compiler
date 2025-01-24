@@ -41,7 +41,7 @@ func NewASTBuilder() *ASTBuilder {
 	}
 }
 
-func (b *ASTBuilder) VisitProgram(ctx parser.ProgramContext) interface{} {
+func (b *ASTBuilder) VisitProgram(ctx *parser.ProgramContext) interface{} {
 	program := &Program{}
 
 	for _, functionDefinitionCtx := range ctx.AllFunctionDefinition() {
@@ -53,7 +53,7 @@ func (b *ASTBuilder) VisitProgram(ctx parser.ProgramContext) interface{} {
 	return program
 }
 
-func (b *ASTBuilder) VisitFunctionDefinition(ctx parser.FunctionDefinitionContext) interface{} {
+func (b *ASTBuilder) VisitFunctionDefinition(ctx *parser.FunctionDefinitionContext) interface{} {
 	function := &FunctionDefinition{
 		Name:       ctx.ID().GetText(),
 		ReturnType: IntType, // For the current C subset all functions have return type 'int'.
@@ -71,7 +71,7 @@ func (b *ASTBuilder) VisitFunctionDefinition(ctx parser.FunctionDefinitionContex
 	return function
 }
 
-func (b *ASTBuilder) VisitParameterList(ctx parser.ParameterListContext) interface{} {
+func (b *ASTBuilder) VisitParameterList(ctx *parser.ParameterListContext) interface{} {
 	var parameters []*Parameter
 
 	for _, parameterDeclCtx := range ctx.AllParameterDeclaration() {
@@ -83,14 +83,14 @@ func (b *ASTBuilder) VisitParameterList(ctx parser.ParameterListContext) interfa
 	return parameters
 }
 
-func (b *ASTBuilder) VisitParameterDeclaration(ctx parser.ParameterDeclarationContext) interface{} {
+func (b *ASTBuilder) VisitParameterDeclaration(ctx *parser.ParameterDeclarationContext) interface{} {
 	return &Parameter{
 		Name:     ctx.ID().GetText(),
 		BaseType: IntType, // For the current C subset all parameters have type 'int'.
 	}
 }
 
-func (b *ASTBuilder) VisitCompoundStatement(ctx parser.CompoundStatementContext) interface{} {
+func (b *ASTBuilder) VisitCompoundStatement(ctx *parser.CompoundStatementContext) interface{} {
 	blockStatement := &BlockStatement{}
 
 	if declarationListCtx := ctx.DeclarationList(); declarationListCtx != nil {
@@ -106,7 +106,7 @@ func (b *ASTBuilder) VisitCompoundStatement(ctx parser.CompoundStatementContext)
 	return blockStatement
 }
 
-func (b *ASTBuilder) VisitStatementList(ctx parser.StatementListContext) interface{} {
+func (b *ASTBuilder) VisitStatementList(ctx *parser.StatementListContext) interface{} {
 	var statements []Statement
 
 	for _, statementCtx := range ctx.AllStatement() {
@@ -118,7 +118,7 @@ func (b *ASTBuilder) VisitStatementList(ctx parser.StatementListContext) interfa
 	return statements
 }
 
-func (b *ASTBuilder) VisitStatement(ctx parser.StatementContext) interface{} {
+func (b *ASTBuilder) VisitStatement(ctx *parser.StatementContext) interface{} {
 	const expectedType = "*BlockStatement|*ExpressionStatement|*IfStatement|" +
 		"*WhileStatement|*ReturnStatement|*PrintfStatement"
 
@@ -144,7 +144,7 @@ func (b *ASTBuilder) VisitStatement(ctx parser.StatementContext) interface{} {
 	return assertType[Statement](result, "Statement", expectedType)
 }
 
-func (b *ASTBuilder) VisitExpressionStatement(ctx parser.ExpressionStatementContext) interface{} {
+func (b *ASTBuilder) VisitExpressionStatement(ctx *parser.ExpressionStatementContext) interface{} {
 	expressionStatement := &ExpressionStatement{}
 
 	if expressionCtx := ctx.Expression(); expressionCtx != nil {
@@ -155,7 +155,7 @@ func (b *ASTBuilder) VisitExpressionStatement(ctx parser.ExpressionStatementCont
 	return expressionStatement
 }
 
-func (b *ASTBuilder) VisitSelectionStatement(ctx parser.SelectionStatementContext) interface{} {
+func (b *ASTBuilder) VisitSelectionStatement(ctx *parser.SelectionStatementContext) interface{} {
 	conditionResult := ctx.Expression().Accept(b)
 	condition := assertType[Expression](conditionResult, "SelectionStatement", "Expression")
 
@@ -175,7 +175,7 @@ func (b *ASTBuilder) VisitSelectionStatement(ctx parser.SelectionStatementContex
 	}
 }
 
-func (b *ASTBuilder) VisitIterationStatement(ctx parser.IterationStatementContext) interface{} {
+func (b *ASTBuilder) VisitIterationStatement(ctx *parser.IterationStatementContext) interface{} {
 	conditionResult := ctx.Expression().Accept(b)
 	condition := assertType[Expression](conditionResult, "IterationStatement", "Expression")
 
@@ -188,7 +188,7 @@ func (b *ASTBuilder) VisitIterationStatement(ctx parser.IterationStatementContex
 	}
 }
 
-func (b *ASTBuilder) VisitJumpStatement(ctx parser.JumpStatementContext) interface{} {
+func (b *ASTBuilder) VisitJumpStatement(ctx *parser.JumpStatementContext) interface{} {
 	var returnValue Expression
 
 	if expressionCtx := ctx.Expression(); expressionCtx != nil {
@@ -201,7 +201,7 @@ func (b *ASTBuilder) VisitJumpStatement(ctx parser.JumpStatementContext) interfa
 	}
 }
 
-func (b *ASTBuilder) VisitPrintfStatement(ctx parser.PrintfStatementContext) interface{} {
+func (b *ASTBuilder) VisitPrintfStatement(ctx *parser.PrintfStatementContext) interface{} {
 	printfStatement := &PrintfStatement{
 		Format: removeQuotes(ctx.STR().GetText()),
 	}
@@ -230,7 +230,7 @@ type declaratorExpressionPair struct {
 	initializer Expression
 }
 
-func (b *ASTBuilder) VisitDeclarationList(ctx parser.DeclarationListContext) interface{} {
+func (b *ASTBuilder) VisitDeclarationList(ctx *parser.DeclarationListContext) interface{} {
 	var declarations []*Declaration
 
 	for _, declarationCtx := range ctx.AllDeclaration() {
@@ -242,7 +242,7 @@ func (b *ASTBuilder) VisitDeclarationList(ctx parser.DeclarationListContext) int
 	return declarations
 }
 
-func (b *ASTBuilder) VisitDeclaration(ctx parser.DeclarationContext) interface{} {
+func (b *ASTBuilder) VisitDeclaration(ctx *parser.DeclarationContext) interface{} {
 	declaration := &Declaration{
 		Type: IntType, // For the current C subset all variable declarations use type 'int'.
 	}
@@ -258,7 +258,7 @@ func (b *ASTBuilder) VisitDeclaration(ctx parser.DeclarationContext) interface{}
 	return declaration
 }
 
-func (b *ASTBuilder) VisitInitDeclaratorList(ctx parser.InitDeclaratorListContext) interface{} {
+func (b *ASTBuilder) VisitInitDeclaratorList(ctx *parser.InitDeclaratorListContext) interface{} {
 	var declarators []declaratorExpressionPair
 
 	for _, declaratorCtx := range ctx.AllInitDeclarator() {
@@ -270,7 +270,7 @@ func (b *ASTBuilder) VisitInitDeclaratorList(ctx parser.InitDeclaratorListContex
 	return declarators
 }
 
-func (b *ASTBuilder) VisitInitDeclarator(ctx parser.InitDeclaratorContext) interface{} {
+func (b *ASTBuilder) VisitInitDeclarator(ctx *parser.InitDeclaratorContext) interface{} {
 	declarator := declaratorExpressionPair{
 		name: ctx.ID().GetText(),
 	}
@@ -283,7 +283,7 @@ func (b *ASTBuilder) VisitInitDeclarator(ctx parser.InitDeclaratorContext) inter
 	return declarator
 }
 
-func (b *ASTBuilder) VisitConstant(ctx parser.ConstantContext) interface{} {
+func (b *ASTBuilder) VisitConstant(ctx *parser.ConstantContext) interface{} {
 	literal := &Literal{}
 
 	if numCtx := ctx.NUM(); numCtx != nil {
@@ -299,7 +299,7 @@ func (b *ASTBuilder) VisitConstant(ctx parser.ConstantContext) interface{} {
 	return literal
 }
 
-func (b *ASTBuilder) VisitPrimaryExpression(ctx parser.PrimaryExpressionContext) interface{} {
+func (b *ASTBuilder) VisitPrimaryExpression(ctx *parser.PrimaryExpressionContext) interface{} {
 	if constantCtx := ctx.Constant(); constantCtx != nil {
 		result := constantCtx.Accept(b)
 		return assertType[Expression](result, "PrimaryExpression", "*Literal")
@@ -320,7 +320,7 @@ func (b *ASTBuilder) VisitPrimaryExpression(ctx parser.PrimaryExpressionContext)
 	return nil
 }
 
-func (b *ASTBuilder) VisitPostfixExpression(ctx parser.PostfixExpressionContext) interface{} {
+func (b *ASTBuilder) VisitPostfixExpression(ctx *parser.PostfixExpressionContext) interface{} {
 	if primaryExprCtx := ctx.PrimaryExpression(); primaryExprCtx != nil {
 		result := primaryExprCtx.Accept(b)
 		return assertType[Expression](result, "PostfixExpression", "Expression")
@@ -346,7 +346,7 @@ func (b *ASTBuilder) VisitPostfixExpression(ctx parser.PostfixExpressionContext)
 	return nil
 }
 
-func (b *ASTBuilder) VisitArgumentExpressionList(ctx parser.ArgumentExpressionListContext) interface{} {
+func (b *ASTBuilder) VisitArgumentExpressionList(ctx *parser.ArgumentExpressionListContext) interface{} {
 	var argumentExpressions []Expression
 
 	for _, exprCtx := range ctx.AllAssignmentExpression() {
@@ -358,7 +358,7 @@ func (b *ASTBuilder) VisitArgumentExpressionList(ctx parser.ArgumentExpressionLi
 	return argumentExpressions
 }
 
-func (b *ASTBuilder) VisitUnaryExpression(ctx parser.UnaryExpressionContext) interface{} {
+func (b *ASTBuilder) VisitUnaryExpression(ctx *parser.UnaryExpressionContext) interface{} {
 	if postfixExprCtx := ctx.PostfixExpression(); postfixExprCtx != nil {
 		result := postfixExprCtx.Accept(b)
 		return assertType[Expression](result, "UnaryExpression", "Expression")
@@ -425,37 +425,37 @@ func leftAssociativeReduction[T antlr.ParseTree](operands []T, ctx antlr.BasePar
 	return left
 }
 
-func (b *ASTBuilder) VisitMultiplicativeExpression(ctx parser.MultiplicativeExpressionContext) interface{} {
+func (b *ASTBuilder) VisitMultiplicativeExpression(ctx *parser.MultiplicativeExpressionContext) interface{} {
 	unaryExpressions := ctx.AllUnaryExpression()
 	return leftAssociativeReduction(unaryExpressions, ctx.BaseParserRuleContext, "MultiplicativeExpression", b)
 }
 
-func (b *ASTBuilder) VisitAdditiveExpression(ctx parser.AdditiveExpressionContext) interface{} {
+func (b *ASTBuilder) VisitAdditiveExpression(ctx *parser.AdditiveExpressionContext) interface{} {
 	multiplicativeExpressions := ctx.AllMultiplicativeExpression()
 	return leftAssociativeReduction(multiplicativeExpressions, ctx.BaseParserRuleContext, "AdditiveExpression", b)
 }
 
-func (b *ASTBuilder) VisitRelationalExpression(ctx parser.RelationalExpressionContext) interface{} {
+func (b *ASTBuilder) VisitRelationalExpression(ctx *parser.RelationalExpressionContext) interface{} {
 	additiveExpressions := ctx.AllAdditiveExpression()
 	return leftAssociativeReduction(additiveExpressions, ctx.BaseParserRuleContext, "RelationalExpression", b)
 }
 
-func (b *ASTBuilder) VisitEqualityExpression(ctx parser.EqualityExpressionContext) interface{} {
+func (b *ASTBuilder) VisitEqualityExpression(ctx *parser.EqualityExpressionContext) interface{} {
 	relationalExpressions := ctx.AllRelationalExpression()
 	return leftAssociativeReduction(relationalExpressions, ctx.BaseParserRuleContext, "EqualityExpression", b)
 }
 
-func (b *ASTBuilder) VisitLogicalAndExpression(ctx parser.LogicalAndExpressionContext) interface{} {
+func (b *ASTBuilder) VisitLogicalAndExpression(ctx *parser.LogicalAndExpressionContext) interface{} {
 	equalityExpressions := ctx.AllEqualityExpression()
 	return leftAssociativeReduction(equalityExpressions, ctx.BaseParserRuleContext, "LogicalAndExpression", b)
 }
 
-func (b *ASTBuilder) VisitLogicalOrExpression(ctx parser.LogicalOrExpressionContext) interface{} {
+func (b *ASTBuilder) VisitLogicalOrExpression(ctx *parser.LogicalOrExpressionContext) interface{} {
 	logicalAndExpressions := ctx.AllLogicalAndExpression()
 	return leftAssociativeReduction(logicalAndExpressions, ctx.BaseParserRuleContext, "LogicalOrExpression", b)
 }
 
-func (b *ASTBuilder) VisitConditionalExpression(ctx parser.ConditionalExpressionContext) interface{} {
+func (b *ASTBuilder) VisitConditionalExpression(ctx *parser.ConditionalExpressionContext) interface{} {
 	if logicalOrExpressionCtx := ctx.LogicalOrExpression(); logicalOrExpressionCtx != nil {
 		result := logicalOrExpressionCtx.Accept(b)
 		return assertType[Expression](result, "ConditionalExpression", "Expression")
@@ -465,7 +465,7 @@ func (b *ASTBuilder) VisitConditionalExpression(ctx parser.ConditionalExpression
 	return nil
 }
 
-func (b *ASTBuilder) VisitAssignmentExpression(ctx parser.AssignmentExpressionContext) interface{} {
+func (b *ASTBuilder) VisitAssignmentExpression(ctx *parser.AssignmentExpressionContext) interface{} {
 	if conditionalExprCtx := ctx.ConditionalExpression(); conditionalExprCtx != nil {
 		result := conditionalExprCtx.Accept(b)
 		return assertType[Expression](result, "AssignmentExpression", "Expression")
@@ -489,7 +489,7 @@ func (b *ASTBuilder) VisitAssignmentExpression(ctx parser.AssignmentExpressionCo
 	return nil
 }
 
-func (b *ASTBuilder) VisitExpression(ctx parser.ExpressionContext) interface{} {
+func (b *ASTBuilder) VisitExpression(ctx *parser.ExpressionContext) interface{} {
 	assignmentExpressions := ctx.AllAssignmentExpression()
 	return leftAssociativeReduction(assignmentExpressions, ctx.BaseParserRuleContext, "Expression", b)
 }
