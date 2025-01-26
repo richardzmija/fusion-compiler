@@ -29,3 +29,33 @@ type CodeGenerator struct {
 	// to the standard output.
 	printf llvm.Value
 }
+
+// NewCodeGenerator creates a new code generator with an empty module.
+func NewCodeGenerator(moduleName string) *CodeGenerator {
+	context := llvm.NewContext()
+	module := context.NewModule(moduleName)
+	builder := context.NewBuilder()
+
+	codeGenerator := &CodeGenerator{
+		module: module,
+		builder: builder,
+		context: context,
+		namedValues: make(map[string]llvm.Value),
+	}
+
+	codeGenerator.declarePrintf()
+
+	return codeGenerator
+}
+
+// declarePrintf adds a function named printf to the module encapsulated
+// in the code generator and stores a reference to it in the code generator.
+func (c *CodeGenerator) declarePrintf() {
+	printfType := llvm.FunctionType(
+		c.context.Int32Type(),
+		[]llvm.Type{llvm.PointerType(c.context.Int8Type(), 0)},
+		true,
+	)
+	c.printf = llvm.AddFunction(c.module, "printf", printfType)
+}
+
