@@ -1,6 +1,7 @@
 package codegen
 
 import (
+	"github.com/richardzmija/fusion-compiler/internal/ast"
 	llvm "tinygo.org/x/go-llvm"
 )
 
@@ -37,9 +38,9 @@ func NewCodeGenerator(moduleName string) *CodeGenerator {
 	builder := context.NewBuilder()
 
 	codeGenerator := &CodeGenerator{
-		module: module,
-		builder: builder,
-		context: context,
+		module:      module,
+		builder:     builder,
+		context:     context,
 		namedValues: make(map[string]llvm.Value),
 	}
 
@@ -59,3 +60,49 @@ func (c *CodeGenerator) declarePrintf() {
 	c.printf = llvm.AddFunction(c.module, "printf", printfType)
 }
 
+// Generate takes the root node of the AST and translates the entire
+// AST into a set of constructs in the LLVM module.
+func (c *CodeGenerator) Generate(program *ast.Program) llvm.Module {
+	for _, function := range program.Functions {
+		c.generateFunction(function)
+	}
+
+	return c.module
+}
+
+// generateFunction translates a FunctionDefinition node of the AST into an LLVM function
+// and adds it to the module.
+func (c *CodeGenerator) generateFunction(function *ast.FunctionDefinition) llvm.Value {
+	// All parameter types are int in this subset.
+	parameterTypes := make([]llvm.Type, len(function.Parameters))
+	for i := range function.Parameters {
+		parameterTypes[i] = c.context.Int32Type()
+	}
+	// A functions in this subset have return type int.
+	returnType := c.context.Int32Type()
+
+	// Build the function type and add to module.
+	functionType := llvm.FunctionType(returnType, parameterTypes, false)
+	llvmFunction := llvm.AddFunction(c.module, function.Name, functionType)
+
+	// Create a new basic block named 'entry' within the newly added LLVM function
+	// and set the builder insertion point to the end of this block.
+	entryBasicBlock := c.context.AddBasicBlock(llvmFunction, "entry")
+	c.builder.SetInsertPointAtEnd(entryBasicBlock)
+
+	// At this point parameters could be stored in the symbol table and allocated
+	// before we start processing the function body. For now this step is left out
+	// as only the most basic functionality is implemented now.
+
+	// Generate LLVM code for the function body.
+	c.generateBlockStatement(function.Body)
+
+	// It is assumed that every function that has a non-void return type
+	// has a correct return statement. This should be handled by the semantic
+	// analysis stage.
+	return llvmFunction
+}
+
+func (c *CodeGenerator) generateBlockStatement(blockStatement *ast.BlockStatement) {
+	// To be implemented.
+}
