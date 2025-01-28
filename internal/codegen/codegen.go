@@ -225,7 +225,7 @@ func (c *CodeGenerator) generatePrintfStatement(printfStatement *ast.PrintfState
 	}
 
 	// Call external printf function and ignore the result.
-	call := c.builder.CreateCall(c.printf.Type(), c.printf, argumentValues, "printfcall")
+	call := c.builder.CreateCall(c.printf.GlobalValueType(), c.printf, argumentValues, "printfcall")
 	_ = call
 }
 
