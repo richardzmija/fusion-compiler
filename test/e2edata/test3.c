@@ -1,21 +1,8 @@
 int main() {
-	int a = 3, b = a + 2;
+	int a = 2, b = 3, c = 150;
 
-	if (a == 3) {
-		printf("hello %d", add(a, b * 12 / 15));
-	}
-	else if (a == 4) {
-		printf("never executes");
-	}
-	else {
-		while (a > 2) {
-			printf("%d\n", a);
-		}
-	}
+	printf("The result of c / a + b is %d\n", c / a + b);
+	printf("The result of c / (a + b) is %d\n", c / (a + b));
 
 	return 0;
-}
-
-int add(int a, int b) {
-	return a + b;
 }
