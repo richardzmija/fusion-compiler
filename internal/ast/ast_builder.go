@@ -2,6 +2,7 @@ package ast
 
 import (
 	"log"
+	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/richardzmija/fusion-compiler/internal/parser"
@@ -202,8 +203,9 @@ func (b *ASTBuilder) VisitJumpStatement(ctx *parser.JumpStatementContext) interf
 }
 
 func (b *ASTBuilder) VisitPrintfStatement(ctx *parser.PrintfStatementContext) interface{} {
+	interpretedFormatString := interpretEscapeSequences(removeQuotes(ctx.STR().GetText()))
 	printfStatement := &PrintfStatement{
-		Format: removeQuotes(ctx.STR().GetText()),
+		Format: interpretedFormatString,
 	}
 
 	for _, expressionCtx := range ctx.AllExpression() {
@@ -223,6 +225,10 @@ func removeQuotes(s string) string {
 	}
 
 	return s
+}
+
+func interpretEscapeSequences(s string) string {
+	return strings.ReplaceAll(s, `\n`, "\n")
 }
 
 type declaratorExpressionPair struct {
