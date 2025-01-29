@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/antlr4-go/antlr/v4"
 
@@ -18,20 +20,49 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: compiler <file.c> [<output-name>]")
-		os.Exit(1)
+	outputPathPtr := flag.String("o", "", "Specify the path of the output file")
+
+	// Separate flags from positional arguments.
+	var inputFiles []string
+	for _, arg := range os.Args[1:] {
+		if arg == "-o" {
+			break
+		}
+		inputFiles = append(inputFiles, arg)
 	}
 
-	filePath := os.Args[1]
-	execName := "a"
-	if len(os.Args) >= 3 {
-		execName = os.Args[2]
+	flag.CommandLine.Parse(os.Args[1+len(inputFiles):])
+
+	if len(inputFiles) == 0 {
+		log.Fatalln("Error: No input file specified. Usage: compiler <input_file> [-o <output_file>]")
 	}
 
-	inputBytes, err := os.ReadFile(filePath)
+	inputPath := inputFiles[0]
+	outputPath := "a"
+	if *outputPathPtr != "" {
+		outputPath = *outputPathPtr
+	}
+
+	// Extract directory from output file path.
+	outputDir := filepath.Dir(outputPath)
+	if outputDir == "." {
+		absPath, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Error: Failed to get current working directory: %v\n", err)
+		}
+		outputDir = absPath
+	}
+
+	// Ensure that the output directory exists.
+	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+		log.Fatalf("Error: Failed to create output directory %q: %v\n", outputDir, err)
+	}
+
+	bitCodeFilePath := filepath.Join(outputDir, "output.bc")
+
+	inputBytes, err := os.ReadFile(inputPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading file %q: %v\n", filePath, err)
+		fmt.Fprintf(os.Stderr, "Error reading file %q: %v\n", inputPath, err)
 		os.Exit(1)
 	}
 
@@ -96,7 +127,7 @@ func main() {
 	}
 
 	// Write module to bitcode file.
-	bitCodeFile, err := os.Create("output.bc")
+	bitCodeFile, err := os.Create(bitCodeFilePath)
 	if err != nil {
 		log.Fatalf("Error: Failed to create bitcode file: %v\n", err)
 	}
@@ -112,9 +143,9 @@ func main() {
 	// optimization flags and link against the C standard library which is automatic.
 	fmt.Printf("Compiling bitcode with clang...\n")
 	args := []string{
-		"-o", execName,
+		"-o", outputPath,
 		"-O3",
-		bitCodeFile.Name(),
+		bitCodeFilePath,
 	}
 	cmd := exec.Command("clang", args...)
 	cmd.Stderr = os.Stderr
