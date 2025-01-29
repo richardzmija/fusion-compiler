@@ -34,3 +34,6 @@ __debug*
 
 # MacOS-specific
 .DS_Store
+
+# Output directory
+out/
