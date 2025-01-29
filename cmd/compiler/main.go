@@ -59,6 +59,7 @@ func main() {
 	}
 
 	bitCodeFilePath := filepath.Join(outputDir, "output.bc")
+	irFilePath := filepath.Join(outputDir, "output.ll")
 
 	inputBytes, err := os.ReadFile(inputPath)
 	if err != nil {
@@ -124,6 +125,13 @@ func main() {
 	if err := llvm.VerifyModule(llvmModule, llvm.ReturnStatusAction); err != nil {
 		fmt.Fprintf(os.Stderr, "LLVM module verification failed:\n%v\n", err)
 		os.Exit(1)
+	}
+
+	// Write module to LLVM IR file.
+	ir := llvmModule.String()
+	err = os.WriteFile(irFilePath, []byte(ir), 0644)
+	if err != nil {
+		log.Fatalf("Error: Failed to write LLVM IR file: %v\n", err)
 	}
 
 	// Write module to bitcode file.
