@@ -47,6 +47,10 @@ func NewCodeGenerator(moduleName string) *CodeGenerator {
 	module := context.NewModule(moduleName)
 	builder := context.NewBuilder()
 
+	// Set the target triple to match the host system.
+	targetTriple := llvm.DefaultTargetTriple()
+	module.SetTarget(targetTriple)
+
 	codeGenerator := &CodeGenerator{
 		module:         module,
 		builder:        builder,
